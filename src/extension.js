@@ -23,10 +23,20 @@ import {
     DBUS_OBJECT_PATH,
     DBUS_IFACE_NAME,
     ExtensionPositions,
+    LYRIC_IFACE_NAME,
+    LYRIC_OBJECT_PATH,
 } from "./types/enums/common.js";
 
 /** @typedef {KeysOf<typeof PanelElements>[]} ElementsOrder */
 /** @typedef {(KeysOf<typeof LabelTypes> | (string & NonNullable<unknown>))[]} LabelsOrder */
+
+/**
+ * Lyric line pushed by a player over the TrayLyric D-Bus service.
+ * @typedef {Object} LyricObj
+ * @property {string} content - the line to show; "" falls back to the media title
+ * @property {number} [time] - seconds the line should take to scroll
+ * @property {string} [sender] - part of the pushing player's MPRIS bus name
+ */
 
 Gio._promisify(Gio.File.prototype, "load_contents_async", "load_contents_finish");
 
@@ -255,6 +265,31 @@ export default class MediaControls extends Extension {
 
     /**
      * @private
+     * @type {Gio.DBusInterfaceInfo}
+     */
+    lyricIfaceInfo;
+
+    /**
+     * @private
+     * @type {number}
+     */
+    lyricOwnerId;
+
+    /**
+     * @private
+     * @type {number}
+     */
+    lyricRegistrationId;
+
+    /**
+     * Lyric lines pushed over D-Bus, keyed by the player they belong to.
+     * @private
+     * @type {Map<string, { content: string, time: number }>}
+     */
+    lyrics;
+
+    /**
+     * @private
      * @type {(busName: string) => void}
      */
     mediaSectionAddFunc;
@@ -265,6 +300,9 @@ export default class MediaControls extends Extension {
      */
     enable() {
         this.playerProxies = new Map();
+        this.lyrics = new Map();
+        this.lyricOwnerId = null;
+        this.lyricRegistrationId = null;
         this.initSettings();
         this.initProxies().catch(errorLog);
         this.updateMediaNotificationVisiblity();
@@ -285,12 +323,15 @@ export default class MediaControls extends Extension {
      * @returns {void}
      */
     disable() {
+        this.disableLyricService();
+        this.lyrics = null;
         this.playerProxies = null;
         this.destroySettings();
         this.watchIfaceInfo = null;
         this.mprisIfaceInfo = null;
         this.mprisPlayerIfaceInfo = null;
         this.propertiesIfaceInfo = null;
+        this.lyricIfaceInfo = null;
         this.watchProxy = null;
         this.removePanelButton();
         this.updateMediaNotificationVisiblity(true);
@@ -477,21 +518,29 @@ export default class MediaControls extends Extension {
         const watchXmlFile = Gio.File.new_for_uri(
             "resource:///org/gnome/shell/extensions/mediacontrols/dbus/watchNode.xml",
         );
+        const lyricXmlFile = Gio.File.new_for_uri(
+            "resource:///org/gnome/shell/extensions/mediacontrols/dbus/lyricNode.xml",
+        );
         const mprisResult = mprisXmlFile.load_contents_async(null);
         const watchResult = watchXmlFile.load_contents_async(null);
-        const readResults = await Promise.all([mprisResult, watchResult]).catch(errorLog);
+        const lyricResult = lyricXmlFile.load_contents_async(null);
+        const readResults = await Promise.all([mprisResult, watchResult, lyricResult]).catch(errorLog);
         if (readResults == null) {
             errorLog("Failed to read xml files");
             return;
         }
         const mprisBytes = readResults[0];
         const watchBytes = readResults[1];
+        const lyricBytes = readResults[2];
         const textDecoder = new TextDecoder();
         const watchNodeXml = textDecoder.decode(watchBytes[0]);
         const mprisNodeXml = textDecoder.decode(mprisBytes[0]);
+        const lyricNodeXml = textDecoder.decode(lyricBytes[0]);
         const watchNodeInfo = Gio.DBusNodeInfo.new_for_xml(watchNodeXml);
         const watchInterface = watchNodeInfo.lookup_interface(DBUS_IFACE_NAME);
         this.watchIfaceInfo = watchInterface;
+        const lyricNodeInfo = Gio.DBusNodeInfo.new_for_xml(lyricNodeXml);
+        this.lyricIfaceInfo = lyricNodeInfo.lookup_interface(LYRIC_IFACE_NAME);
         const mprisNodeInfo = Gio.DBusNodeInfo.new_for_xml(mprisNodeXml);
         const mprisInterface = mprisNodeInfo.lookup_interface(MPRIS_IFACE_NAME);
         const mprisPlayerInterface = mprisNodeInfo.lookup_interface(MPRIS_PLAYER_IFACE_NAME);
@@ -514,6 +563,138 @@ export default class MediaControls extends Extension {
             return;
         }
         await this.addRunningPlayers();
+        this.enableLyricService();
+    }
+
+    /**
+     * Owns the TrayLyric bus name and exports its interface, so players that
+     * implement the service can push the lyric line of the current track.
+     * @private
+     * @returns {void}
+     */
+    enableLyricService() {
+        if (this.lyricIfaceInfo == null) {
+            errorLog("Lyric interface is unavailable, lyric service not started");
+            return;
+        }
+        this.lyricOwnerId = Gio.bus_own_name(
+            Gio.BusType.SESSION,
+            LYRIC_IFACE_NAME,
+            Gio.BusNameOwnerFlags.NONE,
+            (connection) => {
+                this.lyricRegistrationId = connection.register_object(
+                    LYRIC_OBJECT_PATH,
+                    this.lyricIfaceInfo,
+                    this.onLyricMethodCall.bind(this),
+                    null,
+                    null,
+                );
+                debugLog(`Owning ${LYRIC_IFACE_NAME}`);
+            },
+            null,
+            (connection, name) => errorLog(`Could not own ${name}`),
+        );
+    }
+
+    /**
+     * @private
+     * @returns {void}
+     */
+    disableLyricService() {
+        if (this.lyricRegistrationId != null) {
+            Gio.DBus.session.unregister_object(this.lyricRegistrationId);
+            this.lyricRegistrationId = null;
+        }
+        if (this.lyricOwnerId != null) {
+            Gio.bus_unown_name(this.lyricOwnerId);
+            this.lyricOwnerId = null;
+        }
+    }
+
+    /**
+     * Handles the exported TrayLyric method calls.
+     * @private
+     * @param {Gio.DBusConnection} connection
+     * @param {string} sender
+     * @param {string} objectPath
+     * @param {string} interfaceName
+     * @param {string} methodName
+     * @param {GLib.Variant} parameters
+     * @param {Gio.DBusMethodInvocation} invocation
+     * @returns {void}
+     */
+    onLyricMethodCall(connection, sender, objectPath, interfaceName, methodName, parameters, invocation) {
+        if (methodName !== "UpdateLyric") {
+            invocation.return_dbus_error(
+                "org.freedesktop.DBus.Error.NotSupported",
+                `${methodName} is not supported by Media Controls`,
+            );
+            return;
+        }
+        const [payload] = /** @type {[string]} */ (parameters.recursiveUnpack());
+        let lyric;
+        try {
+            lyric = JSON.parse(payload);
+        } catch (e) {
+            errorLog("Invalid lyric payload:", e.message);
+            invocation.return_dbus_error("org.freedesktop.DBus.Error.InvalidArgs", "Lyric is not valid JSON");
+            return;
+        }
+        invocation.return_value(null);
+        this.setLyric(lyric);
+    }
+
+    /**
+     * Stores the lyric line pushed by a player, so it can be shown whenever that
+     * player is the one on the panel. An empty content clears the stored line.
+     * @private
+     * @param {LyricObj} lyric
+     * @returns {void}
+     */
+    setLyric(lyric) {
+        if (this.lyrics == null) {
+            return;
+        }
+        const busName = this.findLyricPlayer(lyric?.sender);
+        if (busName == null) {
+            debugLog("No player matches lyric sender:", lyric?.sender);
+            return;
+        }
+        if (typeof lyric.content !== "string" || lyric.content === "") {
+            this.lyrics.delete(busName);
+        } else {
+            const time = typeof lyric.time === "number" && lyric.time > 0 ? lyric.time : 0;
+            this.lyrics.set(busName, { content: lyric.content, time });
+        }
+        this.updatePanelLyric();
+    }
+
+    /**
+     * @private
+     * @param {string} [sender] - part of the pushing player's bus name
+     * @returns {string | null} bus name of the matching player
+     */
+    findLyricPlayer(sender) {
+        if (typeof sender !== "string" || sender === "") {
+            return null;
+        }
+        for (const busName of this.playerProxies?.keys() ?? []) {
+            if (busName.toLowerCase().includes(sender.toLowerCase())) {
+                return busName;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Shows the stored lyric of the player currently on the panel, or restores
+     * the media title when that player has no lyric.
+     * @private
+     * @returns {void}
+     */
+    updatePanelLyric() {
+        const busName = this.panelBtn?.playerProxy?.busName;
+        this.panelBtn?.updateLyric(busName == null ? null : (this.lyrics?.get(busName) ?? null));
     }
 
     /**
@@ -600,6 +781,7 @@ export default class MediaControls extends Extension {
         debugLog("Removing player:", busName);
         this.playerProxies.get(busName)?.onDestroy();
         this.playerProxies.delete(busName);
+        this.lyrics.delete(busName);
         this.panelBtn?.updateWidgets(WidgetFlags.MENU_PLAYERS);
         this.setActivePlayer();
     }
@@ -656,6 +838,7 @@ export default class MediaControls extends Extension {
                 this.panelBtn.updateProxy(chosenPlayer);
             }
         }
+        this.updatePanelLyric();
     }
 
     /**

@@ -15,6 +15,8 @@ import { debugLog } from "../../utils/common.js";
  * @property {boolean} initPaused
  * @property {number} [scrollSpeed]
  * @property {number} [scrollPauseTime]
+ * @property {number} [scrollDuration] - milliseconds; scroll the text once over
+ *   this duration instead of looping it like a marquee (used for pushed lyrics)
  */
 
 /** @extends St.ScrollView */
@@ -75,6 +77,12 @@ class ScrollingLabel extends St.ScrollView {
      * @type {number}
      */
     scrollSpeed;
+    /**
+     * Milliseconds to scroll the text once, or 0 to loop it forever.
+     * @private
+     * @type {number}
+     */
+    scrollDuration;
 
     /**
      * @param {ScrollingLabelParams} params
@@ -89,11 +97,22 @@ class ScrollingLabel extends St.ScrollView {
             isFixedWidth: true,
             scrollPauseTime: 0,
         };
-        const { text, width, direction, isFixedWidth, isScrolling, initPaused, scrollSpeed, scrollPauseTime } = {
+        const {
+            text,
+            width,
+            direction,
+            isFixedWidth,
+            isScrolling,
+            initPaused,
+            scrollSpeed,
+            scrollPauseTime,
+            scrollDuration,
+        } = {
             ...defaultParams,
             ...params,
         };
         this.scrollPauseTime = scrollPauseTime;
+        this.scrollDuration = scrollDuration ?? 0;
         this.isScrolling = isScrolling;
         this.isFixedWidth = isFixedWidth;
         this.initPaused = initPaused;
@@ -189,7 +208,9 @@ class ScrollingLabel extends St.ScrollView {
      */
     initScrolling() {
         const adjustment = this.get_hadjustment();
-        const origText = this.label.text + "     ";
+        // A one-shot scroll (pushed lyric) must not loop, so it needs neither
+        // the trailing padding nor the duplicated text the marquee uses.
+        const origText = this.scrollDuration > 0 ? this.label.text : this.label.text + "     ";
 
         // Clean up any existing handler first
         if (this.onAdjustmentChangedId != null) {
@@ -201,7 +222,7 @@ class ScrollingLabel extends St.ScrollView {
             "changed",
             this.onAdjustmentChanged.bind(this, adjustment, origText),
         );
-        this.label.text = `${origText} `;
+        this.label.text = this.scrollDuration > 0 ? origText : `${origText} `;
         this.label.clutterText.ellipsize = Pango.EllipsizeMode.NONE;
     }
 
@@ -258,7 +279,8 @@ class ScrollingLabel extends St.ScrollView {
         const final = new GObject.Value();
         final.init(GObject.TYPE_INT);
         final.set_int(adjustment.upper);
-        const duration = (adjustment.upper - adjustment.value) / this.scrollSpeed;
+        const duration =
+            this.scrollDuration > 0 ? this.scrollDuration : (adjustment.upper - adjustment.value) / this.scrollSpeed;
         const pspec = adjustment.find_property("value");
         const interval = new Clutter.Interval({
             valueType: pspec.value_type,
@@ -273,7 +295,7 @@ class ScrollingLabel extends St.ScrollView {
             duration,
             interval,
         });
-        this.label.text = `${origText} ${origText}`;
+        this.label.text = this.scrollDuration > 0 ? origText : `${origText} ${origText}`;
 
         // Disconnect the adjustment changed handler if it's still connected
         if (this.onAdjustmentChangedId != null) {
@@ -282,8 +304,14 @@ class ScrollingLabel extends St.ScrollView {
         }
 
         this.transition.connect("completed", () => {
+            // A pushed lyric scrolls exactly once and rests where it ended; the
+            // next line replaces the label, so there is nothing to loop or rewind.
+            if (this.scrollDuration > 0) {
+                return;
+            }
+
             this.transition.rewind(); // Snap back to 0
-            
+
             if (this.scrollPauseTime > 0) {
                 if (this.cyclePauseTimerId != null) {
                     GLib.source_remove(this.cyclePauseTimerId);
@@ -302,7 +330,12 @@ class ScrollingLabel extends St.ScrollView {
             }
         });
 
-        if (this.scrollPauseTime > 0) {
+        if (this.scrollDuration > 0) {
+            adjustment.add_transition("scroll", this.transition);
+            if (this.initPaused) {
+                this.transition.pause();
+            }
+        } else if (this.scrollPauseTime > 0) {
             this.initialPauseTimerId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this.scrollPauseTime, () => {
                 this.initialPauseTimerId = null;
                 adjustment.add_transition("scroll", this.transition);

@@ -10,6 +10,44 @@ Show controls and information of the currently playing media in the panel.
 - Popup with album art and a slider to control the playback
 - Scrolling animations
 - Blacklist players
+- Lyric lines pushed by the player over D-Bus
+
+---
+
+## Lyric service (D-Bus)
+
+Players can push the lyric line of the current track over D-Bus; the line is shown in
+the panel instead of the media title, scrolling once over the duration the player
+specifies. This is the lyric service from stark81's
+[dbus-lyric branch](https://github.com/stark81/media-controls/tree/dev.feature.dbus-lyric),
+reimplemented on top of the current upstream code.
+
+| | |
+| --- | --- |
+| Bus name | `org.gnome.Shell.TrayLyric` |
+| Object path | `/org/gnome/Shell/TrayLyric` |
+| Interface | `org.gnome.Shell.TrayLyric` |
+| Method | `UpdateLyric(s lrcObj)` |
+
+`lrcObj` is a JSON string:
+
+```json
+{
+  "content": "current lyric line", // "" restores the media title
+  "time": 4.5,                     // seconds this line should take to scroll
+  "sender": "VutronMusic"          // part of the pushing player's MPRIS bus name
+}
+```
+
+The line is matched to a player by substring of that player's bus name
+(`org.mpris.MediaPlayer2.<...>`), so a player can only drive the panel while it is the
+active one. Pushing `"content": ""` (or switching to another player) restores the media
+title.
+
+```bash
+gdbus call --session --dest org.gnome.Shell.TrayLyric --object-path /org/gnome/Shell/TrayLyric \
+  --method org.gnome.Shell.TrayLyric.UpdateLyric '{"content":"Never gonna give you up","time":4,"sender":"VutronMusic"}'
+```
 
 ---
 
