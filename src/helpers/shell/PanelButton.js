@@ -20,7 +20,7 @@ import * as Config from 'resource:///org/gnome/shell/misc/config.js';
 import ScrollingLabel from "./ScrollingLabel.js";
 import MenuSlider from "./MenuSlider.js";
 import { debugLog, errorLog } from "../../utils/common.js";
-import { getAppByIdAndEntry, getImage } from "../../utils/shell_only.js";
+import { getAppByIdAndEntry, getImage, verticalLayout } from "../../utils/shell_only.js";
 import { ControlIconOptions } from "../../types/enums/shell_only.js";
 import {
     LabelTypes,
@@ -162,6 +162,14 @@ class PanelButton extends PanelMenu.Button {
     changeListenerIds;
 
     /**
+     * Lyric line pushed by the player for the current track, shown instead of
+     * the media title while it is set.
+     * @private
+     * @type {{ content: string, time: number } | null}
+     */
+    lyricObj;
+
+    /**
      * @param {PlayerProxy} playerProxy
      * @param {MediaControls} extension
      */
@@ -169,6 +177,7 @@ class PanelButton extends PanelMenu.Button {
         super(0.5, "Media Controls", false);
         this.playerProxy = playerProxy;
         this.extension = extension;
+        this.lyricObj = null;
         this.changeListenerIds = new Map();
         this.doubleTapSourceId = null;
         this.updateWidgets(WidgetFlags.ALL);
@@ -206,6 +215,22 @@ class PanelButton extends PanelMenu.Button {
     }
 
     /**
+     * Shows a lyric line pushed by the player, or falls back to the media title
+     * when passed null.
+     * @public
+     * @param {{ content: string, time: number } | null} lyricObj
+     * @returns {void}
+     */
+    updateLyric(lyricObj) {
+        if (this.lyricObj?.content === lyricObj?.content && this.lyricObj?.time === lyricObj?.time) {
+            return;
+        }
+        this.lyricObj = lyricObj;
+        debugLog("Updating lyric:", lyricObj?.content ?? "(none)");
+        this.updateWidgets(WidgetFlags.PANEL_LABEL);
+    }
+
+    /**
      * @public
      * @param {PlayerProxy} playerProxy
      * @returns {boolean}
@@ -232,7 +257,7 @@ class PanelButton extends PanelMenu.Button {
                 style_class: "no-padding popup-menu-box",
                 activate: false,
             });
-            this.menuBox.set_vertical(true);
+            this.menuBox.set(verticalLayout());
             this.menuBox.remove_style_class_name("popup-menu-item");
             this.menuBox.remove_all_children();
         }
@@ -311,9 +336,7 @@ class PanelButton extends PanelMenu.Button {
      */
     addMenuPlayers() {
         if (this.menuPlayers == null) {
-            this.menuPlayers = new St.BoxLayout({
-                vertical: true,
-            });
+            this.menuPlayers = new St.BoxLayout(verticalLayout());
         }
         if (this.menuPlayersTextBox == null) {
             this.menuPlayersTextBox = new St.BoxLayout({
@@ -548,9 +571,7 @@ class PanelButton extends PanelMenu.Button {
      */
     addMenuLabels() {
         if (this.menuLabels == null) {
-            this.menuLabels = new St.BoxLayout({
-                vertical: true,
-            });
+            this.menuLabels = new St.BoxLayout(verticalLayout());
         }
         if (this.menuLabelTitle != null) {
             this.menuLabels.remove_child(this.menuLabelTitle);
@@ -763,14 +784,18 @@ class PanelButton extends PanelMenu.Button {
      * @returns {void}
      */
     addButtonLabel(index) {
+        // A lyric line pushed by the player replaces the media title.
+        const lyricObj = this.lyricObj;
         const label = new ScrollingLabel({
-            text: this.getButtonLabelText(),
+            text: lyricObj?.content ?? this.getButtonLabelText(),
             width: this.extension.labelWidth,
             isFixedWidth: this.extension.isFixedLabelWidth,
-            isScrolling: this.extension.scrollLabels,
+            // Lyrics are meant to scroll: the pushed `time` drives the scroll.
+            isScrolling: lyricObj != null || this.extension.scrollLabels,
             initPaused: this.playerProxy.playbackStatus !== PlaybackStatus.PLAYING,
             scrollSpeed: this.extension.scrollSpeed,
             scrollPauseTime: this.extension.scrollPauseTime,
+            ...(lyricObj?.time > 0 ? { scrollDuration: lyricObj.time * 1000 } : {}),
         });
         if (this.buttonLabel?.get_parent() === this.buttonBox) {
             this.buttonBox.replace_child(this.buttonLabel, label);
