@@ -2,7 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-30 18:44+0200\n"
+"POT-Creation-Date: 2026-10-11 09:30+0800PO-Revision-Date: YEAR-MO-DA "
+"HO:MI+ZONE\n"
 "PO-Revision-Date: 2025-05-15 17:58+0200\n"
 "Last-Translator: Your Name <your.email@example.com>\n"
 "Language-Team: Chinese\n"
@@ -12,13 +13,57 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
+#: src/helpers/prefs/BlacklistedPlayers.js:72
+msgid ""
+"<span size='x-large' weight='bold' color='#ccc'>No players are blacklisted</"
+"span>"
+msgstr ""
+"<span size='x-large' weight='bold' color='#ccc'>黑名单中没有播放器</span>"
+
+#: src/helpers/prefs/LabelList.js:121
+msgid "Custom text"
+msgstr "自定义文本"
+
+#: src/helpers/shell/PanelButton.js:422
+msgid "Unknown player"
+msgstr "未知播放器"
+
+#: src/helpers/shell/PanelButton.js:592 src/helpers/shell/PanelButton.js:970
+msgid "Unknown artist"
+msgstr "未知艺术家"
+
+#: src/helpers/shell/PanelButton.js:972
+msgid "Unknown album"
+msgstr "未知专辑"
+
+#: src/prefs.js:231
+msgid "Are you sure you want to clear the cache?"
+msgstr "确定要清除缓存吗？"
+
+#: src/prefs.js:232
+msgid "Cancel"
+msgstr "取消"
+
+#: src/prefs.js:233
+msgid "Clear cache"
+msgstr "清除缓存"
+
+#: src/prefs.js:238 src/prefs.js:245
+#, javascript-format
+msgid "Cache size: %s"
+msgstr "缓存大小：%s"
+
+#: src/prefs.js:344
+msgid "Cache cleared successfully!"
+msgstr "缓存已成功清除！"
+
+#: src/prefs.js:346
+msgid "Failed to clear cache!"
+msgstr "清除缓存失败！"
+
 #: assets/ui/app-chooser.ui:6
 msgid "Select app to blacklist"
 msgstr "选择要加入黑名单的应用"
-
-#: assets/ui/app-chooser.ui:19 src/prefs.js:232 dist/temp/prefs.js:232
-msgid "Cancel"
-msgstr "取消"
 
 #: assets/ui/app-chooser.ui:24
 msgid "Select"
@@ -26,7 +71,7 @@ msgstr "选择"
 
 #: assets/ui/blacklisted-players.ui:6
 msgid "Blacklist players"
-msgstr "黑名单播放器"
+msgstr "播放器黑名单"
 
 #: assets/ui/blacklisted-players.ui:7
 msgid "Blacklisted players will be ignored by the extension."
@@ -40,7 +85,7 @@ msgstr "添加"
 msgid "Elements"
 msgstr "元素"
 
-#: assets/ui/element-list.ui:15 assets/ui/prefs.ui:160
+#: assets/ui/element-list.ui:15 assets/ui/prefs.ui:194
 msgid "Player icon"
 msgstr "播放器图标"
 
@@ -48,7 +93,7 @@ msgstr "播放器图标"
 msgid "Label"
 msgstr "标签"
 
-#: assets/ui/element-list.ui:37 assets/ui/prefs.ui:119
+#: assets/ui/element-list.ui:37 assets/ui/prefs.ui:153
 msgid "Player controls"
 msgstr "播放器控制"
 
@@ -82,7 +127,7 @@ msgstr "宽度"
 
 #: assets/ui/prefs.ui:19
 msgid "0 to take all available space"
-msgstr "填 0 以占满可用空间"
+msgstr "设为 0 以占满可用空间"
 
 #: assets/ui/prefs.ui:32
 msgid "Fixed width"
@@ -92,194 +137,213 @@ msgstr "固定宽度"
 msgid "Use the specified width even when they are smaller than the width"
 msgstr "即使元素宽度小于指定宽度，也使用该宽度"
 
-#: assets/ui/prefs.ui:38
-msgid "Scroll labels"
-msgstr "滚动标签"
-
-#: assets/ui/prefs.ui:39
-msgid "Scroll the labels when they are wider than the width"
-msgstr "当标签宽度超过设置宽度时滚动"
-
-#: assets/ui/prefs.ui:46
+#: assets/ui/prefs.ui:40
 msgid "Hide the media notification"
 msgstr "隐藏媒体通知"
 
-#: assets/ui/prefs.ui:47
+#: assets/ui/prefs.ui:41
 msgid "Hide the media notifications in the notification list"
 msgstr "在通知列表中隐藏媒体通知"
 
+#: assets/ui/prefs.ui:48
+msgid "Animations"
+msgstr "动画"
+
+#: assets/ui/prefs.ui:49
+msgid "Animations can cause high CPU usage"
+msgstr "动画可能会导致 CPU 占用过高"
+
 #: assets/ui/prefs.ui:52
-#, fuzzy
-msgid "Show the track slider"
-msgstr "显示曲目滑块"
+msgid "Scroll labels"
+msgstr "滚动标签"
 
 #: assets/ui/prefs.ui:53
-msgid "Show the track slider in popup"
-msgstr "在弹出菜单显示曲目滑块"
+msgid "Scroll the labels when they are wider than the width"
+msgstr "当标签宽度超过指定宽度时滚动"
 
-#: assets/ui/prefs.ui:60
+#: assets/ui/prefs.ui:58
+msgid "Scroll speed"
+msgstr "滚动速度"
+
+#: assets/ui/prefs.ui:59
+msgid "Higher values scroll faster"
+msgstr "数值越大滚动越快"
+
+#: assets/ui/prefs.ui:72
+msgid "Scroll pause time"
+msgstr "滚动暂停时间"
+
+#: assets/ui/prefs.ui:73
+msgid "Time to wait before scrolling starts or restarts (in seconds)"
+msgstr "开始或重新开始滚动之前的等待时间（秒）"
+
+#: assets/ui/prefs.ui:86
+msgid "Enable slider"
+msgstr "启用滑块"
+
+#: assets/ui/prefs.ui:87
+msgid "Show the slider in popup"
+msgstr "在弹出菜单中显示滑块"
+
+#: assets/ui/prefs.ui:94
 msgid "Information"
 msgstr "信息"
 
-#: assets/ui/prefs.ui:63
+#: assets/ui/prefs.ui:97
 msgid "Homepage"
 msgstr "主页"
 
-#: assets/ui/prefs.ui:77
+#: assets/ui/prefs.ui:111
 msgid "Release notes"
 msgstr "发行说明"
 
-#: assets/ui/prefs.ui:91 assets/ui/prefs.ui:95
+#: assets/ui/prefs.ui:125 assets/ui/prefs.ui:129
 msgid "Report an issue"
 msgstr "报告问题"
 
-#: assets/ui/prefs.ui:108
+#: assets/ui/prefs.ui:142
 msgid "Panel"
 msgstr "面板"
 
-#: assets/ui/prefs.ui:114
+#: assets/ui/prefs.ui:148
 msgid "Show label"
 msgstr "显示标签"
 
-#: assets/ui/prefs.ui:123
+#: assets/ui/prefs.ui:157
 msgid "Show player controls"
 msgstr "显示播放器控制"
 
-#: assets/ui/prefs.ui:128
+#: assets/ui/prefs.ui:162
 msgid "Show play/pause button"
 msgstr "显示播放/暂停按钮"
 
-#: assets/ui/prefs.ui:134
+#: assets/ui/prefs.ui:168
 msgid "Show next track button"
-msgstr "显示下一曲按钮"
+msgstr "显示下一首按钮"
 
-#: assets/ui/prefs.ui:140
+#: assets/ui/prefs.ui:174
 msgid "Show previous track button"
-msgstr "显示上一曲按钮"
+msgstr "显示上一首按钮"
 
-#: assets/ui/prefs.ui:146
+#: assets/ui/prefs.ui:180
 msgid "Show seek forward button"
 msgstr "显示快进按钮"
 
-#: assets/ui/prefs.ui:152
+#: assets/ui/prefs.ui:186
 msgid "Show seek back button"
 msgstr "显示快退按钮"
 
-#: assets/ui/prefs.ui:164
+#: assets/ui/prefs.ui:198
 msgid "Show player icon"
 msgstr "显示播放器图标"
 
-#: assets/ui/prefs.ui:169
+#: assets/ui/prefs.ui:203
 msgid "Colored player icon"
 msgstr "彩色播放器图标"
 
-#: assets/ui/prefs.ui:179
+#: assets/ui/prefs.ui:213
 msgid "Positions"
 msgstr "位置"
 
-#: assets/ui/prefs.ui:183
+#: assets/ui/prefs.ui:217
 msgid "Extension"
 msgstr "扩展"
 
-#: assets/ui/prefs.ui:186
+#: assets/ui/prefs.ui:220
 msgid "Position"
 msgstr "位置"
 
-#: assets/ui/prefs.ui:187
+#: assets/ui/prefs.ui:221
 msgid "Position of the extension in the panel"
 msgstr "扩展在面板中的位置"
 
-#: assets/ui/prefs.ui:191
+#: assets/ui/prefs.ui:225
 msgid "Left"
 msgstr "左侧"
 
-#: assets/ui/prefs.ui:192
+#: assets/ui/prefs.ui:226
 msgid "Center"
 msgstr "居中"
 
-#: assets/ui/prefs.ui:193
+#: assets/ui/prefs.ui:227
 msgid "Right"
 msgstr "右侧"
 
-#: assets/ui/prefs.ui:201
+#: assets/ui/prefs.ui:235
 msgid "Index"
 msgstr "索引"
 
-#: assets/ui/prefs.ui:202
+#: assets/ui/prefs.ui:236
 msgid "Index of the extension"
 msgstr "扩展索引"
 
-#: assets/ui/prefs.ui:223
+#: assets/ui/prefs.ui:257
 msgid "Shortcuts"
 msgstr "快捷键"
 
-#: assets/ui/prefs.ui:229 assets/ui/prefs.ui:373
+#: assets/ui/prefs.ui:263 assets/ui/prefs.ui:407
 msgid "Show popup menu"
 msgstr "显示弹出菜单"
 
-#: assets/ui/prefs.ui:230
+#: assets/ui/prefs.ui:264
 msgid "Shortcut to toggle the popup menu"
 msgstr "切换弹出菜单快捷键"
 
-#: assets/ui/prefs.ui:234 assets/ui/prefs.ui:324
+#: assets/ui/prefs.ui:268 assets/ui/prefs.ui:358
 msgid "Set shortcut"
 msgstr "设置快捷键"
 
-#: assets/ui/prefs.ui:245
+#: assets/ui/prefs.ui:279
 msgid "Mouse actions"
 msgstr "鼠标操作"
 
-#: assets/ui/prefs.ui:248
+#: assets/ui/prefs.ui:282
 msgid "Left click / Tap"
 msgstr "左键点击 / 轻触"
 
-#: assets/ui/prefs.ui:254
+#: assets/ui/prefs.ui:288
 msgid "Middle click"
 msgstr "中键点击"
 
-#: assets/ui/prefs.ui:260
+#: assets/ui/prefs.ui:294
 msgid "Right click"
 msgstr "右键点击"
 
-#: assets/ui/prefs.ui:266
+#: assets/ui/prefs.ui:300
 msgid "Double click / Double tap"
 msgstr "双击 / 双触"
 
-#: assets/ui/prefs.ui:272
+#: assets/ui/prefs.ui:306
 msgid "Scroll up / Swipe right"
 msgstr "向上滚动 / 向右滑动"
 
-#: assets/ui/prefs.ui:278
+#: assets/ui/prefs.ui:312
 msgid "Scroll down / Swipe left"
 msgstr "向下滚动 / 向左滑动"
 
-#: assets/ui/prefs.ui:286
+#: assets/ui/prefs.ui:320
 msgid "Other"
 msgstr "其他"
 
-#: assets/ui/prefs.ui:290
+#: assets/ui/prefs.ui:324
 msgid "Cache"
 msgstr "缓存"
 
-#: assets/ui/prefs.ui:291
+#: assets/ui/prefs.ui:325
 msgid ""
 "This extension cache album art to improve performance. You can clear the "
 "cache here."
 msgstr "此扩展会缓存专辑封面以提高性能。你可以在这里清除缓存。"
 
-#: assets/ui/prefs.ui:294
+#: assets/ui/prefs.ui:328
 msgid "Cache album art"
 msgstr "缓存专辑封面"
 
-#: assets/ui/prefs.ui:299 src/prefs.js:233 dist/temp/prefs.js:233
-msgid "Clear cache"
-msgstr "清除缓存"
-
-#: assets/ui/prefs.ui:309
+#: assets/ui/prefs.ui:343
 msgid "Clear"
 msgstr "清除"
 
-#: assets/ui/prefs.ui:341
+#: assets/ui/prefs.ui:375
 msgid ""
 "<small>Press escape to cancel.\n"
 "Press enter to set the shortcut.\n"
@@ -289,116 +353,61 @@ msgstr ""
 "按 Enter 设置快捷键。\n"
 "按 Backspace 重置。</small>"
 
-#: assets/ui/prefs.ui:350
+#: assets/ui/prefs.ui:384
 msgid "Press shortcut"
 msgstr "按下快捷键"
 
-#: assets/ui/prefs.ui:363
+#: assets/ui/prefs.ui:397
 msgid "None"
 msgstr "无"
 
-#: assets/ui/prefs.ui:364
+#: assets/ui/prefs.ui:398
 msgid "Play/Pause"
 msgstr "播放/暂停"
 
-#: assets/ui/prefs.ui:365
+#: assets/ui/prefs.ui:399
 msgid "Play"
 msgstr "播放"
 
-#: assets/ui/prefs.ui:366
+#: assets/ui/prefs.ui:400
 msgid "Pause"
 msgstr "暂停"
 
-#: assets/ui/prefs.ui:367
+#: assets/ui/prefs.ui:401
 msgid "Next track"
-msgstr "下一曲"
+msgstr "下一首"
 
-#: assets/ui/prefs.ui:368
+#: assets/ui/prefs.ui:402
 msgid "Previous track"
-msgstr "上一曲"
+msgstr "上一首"
 
-#: assets/ui/prefs.ui:369
+#: assets/ui/prefs.ui:403
 msgid "Volume up"
-msgstr "增加音量"
+msgstr "增大音量"
 
-#: assets/ui/prefs.ui:370
+#: assets/ui/prefs.ui:404
 msgid "Volume down"
-msgstr "降低音量"
+msgstr "减小音量"
 
-#: assets/ui/prefs.ui:371
+#: assets/ui/prefs.ui:405
 msgid "Toggle loop"
-msgstr "切换循环"
+msgstr "切换循环播放"
 
-#: assets/ui/prefs.ui:372
+#: assets/ui/prefs.ui:406
 msgid "Toggle shuffle"
-msgstr "切换随机"
+msgstr "切换随机播放"
 
-#: assets/ui/prefs.ui:374
+#: assets/ui/prefs.ui:408
 msgid "Raise player"
-msgstr "将播放器置顶"
+msgstr "将播放器窗口置于最前"
 
-#: assets/ui/prefs.ui:375
+#: assets/ui/prefs.ui:409
 msgid "Quit player"
 msgstr "退出播放器"
 
-#: assets/ui/prefs.ui:376
+#: assets/ui/prefs.ui:410
 msgid "Open preferences"
 msgstr "打开设置"
 
-#: src/prefs.js:231 dist/temp/prefs.js:231
-msgid "Are you sure you want to clear the cache?"
-msgstr "确定要清除缓存吗？"
-
-#: src/prefs.js:238 src/prefs.js:245 dist/temp/prefs.js:238
-#: dist/temp/prefs.js:245
-#, javascript-format
-msgid "Cache size: %s"
-msgstr "缓存大小：%s"
-
-#: src/prefs.js:342 dist/temp/prefs.js:342
-msgid "Cache cleared successfully!"
-msgstr "缓存已成功清除！"
-
-#: src/prefs.js:344 dist/temp/prefs.js:344
-msgid "Failed to clear cache!"
-msgstr "清除缓存失败！"
-
-#: src/helpers/shell/PanelButton.js:361
-#: dist/temp/helpers/shell/PanelButton.js:361
-msgid "Unknown player"
-msgstr "未知播放器"
-
-#: src/helpers/shell/PanelButton.js:510 src/helpers/shell/PanelButton.js:825
-#: dist/temp/helpers/shell/PanelButton.js:510
-#: dist/temp/helpers/shell/PanelButton.js:825
-msgid "Unknown artist"
-msgstr "未知艺术家"
-
-#: src/helpers/shell/PanelButton.js:827
-#: dist/temp/helpers/shell/PanelButton.js:827
-msgid "Unknown album"
-msgstr "未知专辑"
-
-#: src/helpers/prefs/BlacklistedPlayers.js:72
-#: dist/temp/helpers/prefs/BlacklistedPlayers.js:72
-msgid ""
-"<span size='x-large' weight='bold' color='#ccc'>No players are blacklisted</"
-"span>"
-msgstr ""
-"<span size='x-large' weight='bold' color='#ccc'>黑名单中没有播放器</span>"
-
-#: src/helpers/prefs/LabelList.js:121 dist/temp/helpers/prefs/LabelList.js:121
-msgid "Custom text"
-msgstr "自定义文本"
-
-#~ msgid "Scroll speed"
-#~ msgstr "滚动速度"
-
-#~ msgid "Higher values scroll faster"
-#~ msgstr "值越高滚动越快"
-
-#~ msgid "Scroll pause time"
-#~ msgstr "滚动停留时间"
-
-#~ msgid "Time to wait before scrolling starts or restarts (in seconds)"
-#~ msgstr "开始滚动或者重复滚动之前的等待时长 (单位: 秒)"
+#~ msgid "Show the track slider"
+#~ msgstr "显示曲目滑块"
