@@ -162,6 +162,14 @@ class PanelButton extends PanelMenu.Button {
     changeListenerIds;
 
     /**
+     * Lyric line pushed by the player for the current track, shown instead of
+     * the media title while it is set.
+     * @private
+     * @type {{ content: string, time: number } | null}
+     */
+    lyricObj;
+
+    /**
      * @param {PlayerProxy} playerProxy
      * @param {MediaControls} extension
      */
@@ -169,6 +177,7 @@ class PanelButton extends PanelMenu.Button {
         super(0.5, "Media Controls", false);
         this.playerProxy = playerProxy;
         this.extension = extension;
+        this.lyricObj = null;
         this.changeListenerIds = new Map();
         this.doubleTapSourceId = null;
         this.updateWidgets(WidgetFlags.ALL);
@@ -203,6 +212,22 @@ class PanelButton extends PanelMenu.Button {
             this.updateWidgets(WidgetFlags.ALL);
             this.addProxyListeners();
         }
+    }
+
+    /**
+     * Shows a lyric line pushed by the player, or falls back to the media title
+     * when passed null.
+     * @public
+     * @param {{ content: string, time: number } | null} lyricObj
+     * @returns {void}
+     */
+    updateLyric(lyricObj) {
+        if (this.lyricObj?.content === lyricObj?.content && this.lyricObj?.time === lyricObj?.time) {
+            return;
+        }
+        this.lyricObj = lyricObj;
+        debugLog("Updating lyric:", lyricObj?.content ?? "(none)");
+        this.updateWidgets(WidgetFlags.PANEL_LABEL);
     }
 
     /**
@@ -759,14 +784,18 @@ class PanelButton extends PanelMenu.Button {
      * @returns {void}
      */
     addButtonLabel(index) {
+        // A lyric line pushed by the player replaces the media title.
+        const lyricObj = this.lyricObj;
         const label = new ScrollingLabel({
-            text: this.getButtonLabelText(),
+            text: lyricObj?.content ?? this.getButtonLabelText(),
             width: this.extension.labelWidth,
             isFixedWidth: this.extension.isFixedLabelWidth,
-            isScrolling: this.extension.scrollLabels,
+            // Lyrics are meant to scroll: the pushed `time` drives the scroll.
+            isScrolling: lyricObj != null || this.extension.scrollLabels,
             initPaused: this.playerProxy.playbackStatus !== PlaybackStatus.PLAYING,
             scrollSpeed: this.extension.scrollSpeed,
             scrollPauseTime: this.extension.scrollPauseTime,
+            ...(lyricObj?.time > 0 ? { scrollDuration: lyricObj.time * 1000 } : {}),
         });
         if (this.buttonLabel?.get_parent() === this.buttonBox) {
             this.buttonBox.replace_child(this.buttonLabel, label);
